@@ -20,28 +20,33 @@ public class ClientController {
     // For now tenantId is expected as request param/header; in future extract from JWT
 
     @PostMapping
-    public ResponseEntity<ClientResponseDTO> create(@RequestParam Long tenantId, @Valid @RequestBody CreateClientDTO dto) {
+    public ResponseEntity<ClientResponseDTO> create(@RequestParam(required = false) Long tenantId, @Valid @RequestBody CreateClientDTO dto) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         ClientResponseDTO created = service.create(tenantId, dto);
         return ResponseEntity.status(201).body(created);
     }
 
     @GetMapping
-    public ResponseEntity<List<ClientResponseDTO>> list(@RequestParam Long tenantId) {
+    public ResponseEntity<List<ClientResponseDTO>> list(@RequestParam(required = false) Long tenantId) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         return ResponseEntity.ok(service.listByTenant(tenantId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClientResponseDTO> get(@RequestParam Long tenantId, @PathVariable Long id) {
+    public ResponseEntity<ClientResponseDTO> get(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         return ResponseEntity.ok(service.getById(tenantId, id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClientResponseDTO> update(@RequestParam Long tenantId, @PathVariable Long id, @Valid @RequestBody UpdateClientDTO dto) {
+    public ResponseEntity<ClientResponseDTO> update(@RequestParam(required = false) Long tenantId, @PathVariable Long id, @Valid @RequestBody UpdateClientDTO dto) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         return ResponseEntity.ok(service.update(tenantId, id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@RequestParam Long tenantId, @PathVariable Long id) {
+    public ResponseEntity<Void> delete(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         service.delete(tenantId, id);
         return ResponseEntity.noContent().build();
     }

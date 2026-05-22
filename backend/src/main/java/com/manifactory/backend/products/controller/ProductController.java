@@ -29,31 +29,38 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductResponseDTO> create(@RequestBody CreateProductDTO dto) {
+        Long tenantId = dto.getTenantId();
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
+        dto.setTenantId(tenantId);
         ProductResponseDTO created = service.create(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponseDTO>> list(@RequestParam Long tenantId) {
+    public ResponseEntity<List<ProductResponseDTO>> list(@RequestParam(required = false) Long tenantId) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         return ResponseEntity.ok(service.listByTenant(tenantId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> get(@RequestParam Long tenantId, @PathVariable Long id) {
+    public ResponseEntity<ProductResponseDTO> get(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         ProductResponseDTO dto = service.getById(tenantId, id);
         if (dto == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> update(@RequestParam Long tenantId, @PathVariable Long id,
+    public ResponseEntity<ProductResponseDTO> update(@RequestParam(required = false) Long tenantId, @PathVariable Long id,
             @RequestBody UpdateProductDTO dto) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         ProductResponseDTO updated = service.update(tenantId, id, dto);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@RequestParam Long tenantId, @PathVariable Long id) {
+    public ResponseEntity<Void> delete(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
+        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
         service.delete(tenantId, id);
         return ResponseEntity.noContent().build();
     }
