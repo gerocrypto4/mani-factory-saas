@@ -17,3 +17,15 @@ Base path: `/api/v1`
 Responses follow the ApiResponse wrapper (success, message, data).
 
 Ejemplo minimal DTOs y formatos en `src/main/java/com/manifactory/backend/tenants/dto`.
+
+### Clients
+
+- `GET /api/v1/clients?tenantId={tenantId}` - Listar clientes de un tenant
+- `POST /api/v1/clients?tenantId={tenantId}` - Crear cliente
+  - Body: `{ "name": "Nombre", "businessName": "Negocio", "email": "x@x.com", "phone": "123", "city": "Ciudad", "preferredTransport": "Transporte" }`
+- `GET /api/v1/clients/{id}?tenantId={tenantId}` - Obtener cliente por id
+- `PUT /api/v1/clients/{id}?tenantId={tenantId}` - Actualizar cliente
+  - Body: `{ "name": "Nombre", "businessName": "Negocio", "email": "x@x.com" }`
+- `DELETE /api/v1/clients/{id}?tenantId={tenantId}` - Eliminar cliente
+
+Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
