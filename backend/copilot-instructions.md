@@ -2,22 +2,48 @@
 
 ## 🎯 Project Overview
 
-**Mani Factory SaaS** es un sistema web escalable SaaS multi-tenant para gestionar una fábrica de maní saborizado.
+**Mani Factory SaaS** es un **Sistema SaaS Multi-Tenant Escalable y Adaptable** diseñado para gestionar operaciones de manufactura/comercio de productos.
+
+### 🏢 Concepto SaaS Multi-Tenant
+
+**CRÍTICO**: Este NO es un sistema mono-usuário. Es un **SaaS** donde:
+- Cada **cliente (tenant)** tiene su **propio espacio aislado** en la plataforma
+- Cada tenant ve **solo sus datos** (pedidos, stock, usuarios, finanzas)
+- Múltiples tenants comparten la misma infraestructura pero datos 100% aislados
+- Cada tenant puede tener **configuración diferente**
+
+### 🔄 Adaptabilidad a Distintos Rubros
+
+El sistema NO está hardcodeado para "maní". Es adaptable a cualquier rubro:
+- **Textil**: Telas, confecciones, lotes de producción
+- **Alimentos**: Jamón, queso, bebidas, harinas, etc.
+- **Electrónica**: Componentes, ensamblado, control de calidad
+- **Cualquier manufactura**: Que requiera gestión de pedidos + stock + producción + finanzas
+
+### 📋 Configuración por Tenant
+
+Cada tenant configurará:
+- **Nombre de su empresa**
+- **Productos** que vende (nombre, precio, descripción)
+- **Datos de contacto** de su empresa
+- **Usuarios internos** (empleados)
+- **Transportistas/Proveedores**
+- **Métodos de pago** (si aplica)
+- **Reglas de producción** (tiempos, costos, etc.)
+
+### Ejemplo Inicial
+- Tenant 1 (Mani Factory): Vende Jamón, Queso, Salame, Pizza (bolsas 1kg)
+- Tenant 2 (TextilX): Vende Telas y Confecciones
+- Tenant 3 (BebidasCo): Vende Bebidas en botellas 500ml y 1L
 
 ### Objetivo Principal
-Desarrollar un sistema integral que permita:
-- Gestión de pedidos online
+Desarrollar un sistema integral que permita a cada tenant:
+- Gestión de pedidos online (venta a clientes)
 - Control de inventario/stock
-- Gestión de producción
-- Seguimiento financiero
+- Gestión de producción (manufacturing)
+- Seguimiento financiero (ingresos/egresos)
 - Panel administrativo interno
-- Página pública para clientes
-
-### Productos Disponibles
-- Jamón (bolsas 1kg)
-- Queso (bolsas 1kg)
-- Salame (bolsas 1kg)
-- Pizza (bolsas 1kg)
+- Página pública para sus clientes
 
 ---
 
