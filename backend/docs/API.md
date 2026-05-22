@@ -29,3 +29,12 @@ Ejemplo minimal DTOs y formatos en `src/main/java/com/manifactory/backend/tenant
 - `DELETE /api/v1/clients/{id}?tenantId={tenantId}` - Eliminar cliente
 
 Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
+
+### Products
+
+- `GET /api/v1/products?tenantId={tenantId}` - Listar productos de un tenant
+- `POST /api/v1/products` - Crear producto
+  - Body: `{ "tenantId": 1, "name": "Producto", "description": "...", "price": 9.99 }`
+- `GET /api/v1/products/{id}?tenantId={tenantId}` - Obtener producto por id
+- `PUT /api/v1/products/{id}?tenantId={tenantId}` - Actualizar producto
+- `DELETE /api/v1/products/{id}?tenantId={tenantId}` - Eliminar producto
