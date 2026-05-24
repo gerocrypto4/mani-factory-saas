@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,15 +18,22 @@ public class JwtTokenProvider {
 
     @Autowired
     public JwtTokenProvider(JwtProperties properties) {
-        this(properties.getSecret(), properties.getExpirationMs());
+        this(properties.getSecret(), properties.getExpirationMs(), properties.isAllowInsecureDevKey());
     }
 
     public JwtTokenProvider(String secret, long validityMs) {
-        if (secret == null || secret.isBlank() || "default-secret-please-change".equals(secret)) {
-            // generate ephemeral key for dev if not set
+        this(secret, validityMs, false);
+    }
+
+    public JwtTokenProvider(String secret, long validityMs, boolean allowInsecureDevKey) {
+        boolean insecureSecret = secret == null || secret.isBlank() || "default-secret-please-change".equals(secret);
+        if (insecureSecret && !allowInsecureDevKey) {
+            throw new IllegalStateException("JWT secret is not configured securely. Set JWT_SECRET.");
+        }
+        if (insecureSecret) {
             this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         } else {
-            this.key = Keys.hmacShaKeyFor(secret.getBytes());
+            this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         }
         this.validityMs = validityMs;
     }

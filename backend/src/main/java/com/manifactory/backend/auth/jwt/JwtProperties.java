@@ -7,6 +7,7 @@ public class JwtProperties {
 
     private String secret = "default-secret-please-change";
     private long expirationMs = 3600000L;
+    private boolean allowInsecureDevKey = false;
 
     public String getSecret() {
         return secret;
@@ -22,5 +23,13 @@ public class JwtProperties {
 
     public void setExpirationMs(long expirationMs) {
         this.expirationMs = expirationMs;
+    }
+
+    public boolean isAllowInsecureDevKey() {
+        return allowInsecureDevKey;
+    }
+
+    public void setAllowInsecureDevKey(boolean allowInsecureDevKey) {
+        this.allowInsecureDevKey = allowInsecureDevKey;
     }
 }

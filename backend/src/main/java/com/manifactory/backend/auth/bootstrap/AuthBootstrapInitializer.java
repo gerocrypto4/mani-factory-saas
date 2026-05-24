@@ -31,6 +31,7 @@ public class AuthBootstrapInitializer implements CommandLineRunner {
         if (!bootstrapProperties.isEnabled()) {
             return;
         }
+        validateBootstrapSecurity();
 
         if (appUserRepository.existsByUsername(bootstrapProperties.getUsername())) {
             return;
@@ -47,5 +48,14 @@ public class AuthBootstrapInitializer implements CommandLineRunner {
 
         log.warn("Bootstrap user created: username='{}', tenantId={}, role={}. Change password immediately.",
                 user.getUsername(), user.getTenantId(), user.getRole());
+    }
+
+    private void validateBootstrapSecurity() {
+        boolean defaultUsername = "admin".equalsIgnoreCase(bootstrapProperties.getUsername());
+        boolean defaultPassword = "admin123".equals(bootstrapProperties.getPassword());
+        if (defaultUsername && defaultPassword && !bootstrapProperties.isAllowDefaultCredentials()) {
+            throw new IllegalStateException(
+                    "Bootstrap credentials are insecure defaults. Configure AUTH_BOOTSTRAP_USERNAME/AUTH_BOOTSTRAP_PASSWORD.");
+        }
     }
 }

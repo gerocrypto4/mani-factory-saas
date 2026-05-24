@@ -8,6 +8,7 @@ import com.manifactory.backend.orders.entity.Order;
 import com.manifactory.backend.orders.entity.OrderItem;
 import com.manifactory.backend.orders.entity.OrderStatus;
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderMapper {
 
-    public Order toEntity(CreateOrderDTO dto, Long tenantId) {
+    public Order toEntity(CreateOrderDTO dto, Long tenantId, Map<Long, BigDecimal> productPriceById) {
         Order order = Order.builder()
                 .tenantId(tenantId)
                 .clientId(dto.getClientId())
@@ -23,7 +24,7 @@ public class OrderMapper {
                 .build();
 
         List<OrderItem> items = dto.getItems().stream()
-                .map(itemDto -> toItemEntity(itemDto, order))
+                .map(itemDto -> toItemEntity(itemDto, order, productPriceById.get(itemDto.getProductId())))
                 .collect(Collectors.toList());
 
         order.setItems(items);
@@ -31,14 +32,15 @@ public class OrderMapper {
         return order;
     }
 
-    private OrderItem toItemEntity(CreateOrderItemDTO dto, Order order) {
+    private OrderItem toItemEntity(CreateOrderItemDTO dto, Order order, BigDecimal catalogPrice) {
         BigDecimal quantity = BigDecimal.valueOf(dto.getQuantity());
-        BigDecimal totalPrice = dto.getUnitPrice().multiply(quantity);
+        BigDecimal unitPrice = catalogPrice;
+        BigDecimal totalPrice = unitPrice.multiply(quantity);
         return OrderItem.builder()
                 .order(order)
                 .productId(dto.getProductId())
                 .quantity(dto.getQuantity())
-                .unitPrice(dto.getUnitPrice())
+                .unitPrice(unitPrice)
                 .totalPrice(totalPrice)
                 .build();
     }

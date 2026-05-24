@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(NotFoundException ex, HttpServletRequest request) {
@@ -39,7 +43,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneral(Exception ex, HttpServletRequest request) {
-        return buildResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR, request.getRequestURI());
+        log.error("Unhandled exception for path={}", request.getRequestURI(), ex);
+        ApiError apiError = ApiError.internalServerError(request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
     }
 
     private ResponseEntity<ApiError> buildResponse(Exception ex, HttpStatus status, String path) {

@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.manifactory.backend.auth.dto.ChangeMyPasswordDTO;
 import com.manifactory.backend.auth.dto.CreateUserDTO;
 import com.manifactory.backend.auth.dto.UpdatePasswordDTO;
 import com.manifactory.backend.auth.dto.UpdateUserDTO;
@@ -30,6 +32,9 @@ class AppUserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private PasswordPolicyService passwordPolicyService;
+
     @InjectMocks
     private AppUserService service;
 
@@ -37,13 +42,13 @@ class AppUserServiceTest {
     void createUser() {
         CreateUserDTO dto = new CreateUserDTO();
         dto.setUsername("u1");
-        dto.setPassword("secret");
+        dto.setPassword("StrongPass#1");
         dto.setTenantId(1L);
         dto.setRole(AppUserRole.ADMIN);
         dto.setActive(true);
 
         when(repository.existsByUsername("u1")).thenReturn(false);
-        when(passwordEncoder.encode("secret")).thenReturn("hash");
+        when(passwordEncoder.encode("StrongPass#1")).thenReturn("hash");
         when(repository.save(any(AppUser.class))).thenAnswer(invocation -> {
             AppUser u = invocation.getArgument(0);
             u.setId(10L);
@@ -79,13 +84,58 @@ class AppUserServiceTest {
                 .active(true)
                 .build();
         when(repository.findById(7L)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("new-pass")).thenReturn("new-hash");
+        when(passwordEncoder.encode("NewPass#123")).thenReturn("new-hash");
         when(repository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UpdatePasswordDTO dto = new UpdatePasswordDTO();
-        dto.setPassword("new-pass");
+        dto.setPassword("NewPass#123");
 
         var updated = service.updatePassword(7L, dto);
         assertEquals(7L, updated.getId());
+    }
+
+    @Test
+    void changeOwnPasswordShouldFailWhenCurrentPasswordIsWrong() {
+        AppUser user = AppUser.builder()
+                .id(7L)
+                .username("u2")
+                .passwordHash("old")
+                .tenantId(1L)
+                .role(AppUserRole.USER)
+                .active(true)
+                .build();
+        when(repository.findByUsername("u2")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("bad-current", "old")).thenReturn(false);
+
+        ChangeMyPasswordDTO dto = new ChangeMyPasswordDTO();
+        dto.setCurrentPassword("bad-current");
+        dto.setNewPassword("NewStrong#123");
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.changeOwnPassword("u2", dto));
+        assertEquals("Current password is incorrect", ex.getMessage());
+    }
+
+    @Test
+    void changeOwnPasswordShouldUpdateWhenCurrentPasswordMatches() {
+        AppUser user = AppUser.builder()
+                .id(7L)
+                .username("u2")
+                .passwordHash("old")
+                .tenantId(1L)
+                .role(AppUserRole.USER)
+                .active(true)
+                .build();
+        when(repository.findByUsername("u2")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("current-ok", "old")).thenReturn(true);
+        when(passwordEncoder.encode("NewStrong#123")).thenReturn("new-hash");
+        when(repository.save(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ChangeMyPasswordDTO dto = new ChangeMyPasswordDTO();
+        dto.setCurrentPassword("current-ok");
+        dto.setNewPassword("NewStrong#123");
+
+        service.changeOwnPassword("u2", dto);
+        verify(repository).save(any(AppUser.class));
     }
 }

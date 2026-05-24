@@ -2,6 +2,7 @@ package com.manifactory.backend.orders.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.manifactory.backend.clients.repository.ClientRepository;
 import com.manifactory.backend.orders.dto.CreateOrderDTO;
 import com.manifactory.backend.orders.dto.CreateOrderItemDTO;
 import com.manifactory.backend.orders.dto.OrderResponseDTO;
@@ -12,6 +13,8 @@ import com.manifactory.backend.orders.entity.OrderStatus;
 import com.manifactory.backend.orders.mapper.OrderMapper;
 import com.manifactory.backend.orders.repository.OrderRepository;
 import com.manifactory.backend.orders.service.impl.OrderServiceImpl;
+import com.manifactory.backend.products.entity.Product;
+import com.manifactory.backend.products.repository.ProductRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -24,13 +27,17 @@ public class OrderServiceTest {
 
     private OrderRepository repository;
     private OrderMapper mapper;
+    private ClientRepository clientRepository;
+    private ProductRepository productRepository;
     private OrderServiceImpl service;
 
     @BeforeEach
     void setup() {
         repository = Mockito.mock(OrderRepository.class);
         mapper = new OrderMapper();
-        service = new OrderServiceImpl(repository, mapper);
+        clientRepository = Mockito.mock(ClientRepository.class);
+        productRepository = Mockito.mock(ProductRepository.class);
+        service = new OrderServiceImpl(repository, mapper, clientRepository, productRepository);
     }
 
     @Test
@@ -40,7 +47,6 @@ public class OrderServiceTest {
         CreateOrderItemDTO item = new CreateOrderItemDTO();
         item.setProductId(2L);
         item.setQuantity(2);
-        item.setUnitPrice(BigDecimal.valueOf(10.00));
         dto.setItems(List.of(item));
 
         Order saved = Order.builder()
@@ -62,6 +68,9 @@ public class OrderServiceTest {
 
         Mockito.when(repository.save(ArgumentMatchers.any(Order.class))).thenReturn(saved);
         Mockito.when(repository.findByIdAndTenantId(5L, 1L)).thenReturn(Optional.of(saved));
+        Mockito.when(clientRepository.findByTenantIdAndId(1L, 1L)).thenReturn(Optional.of(new com.manifactory.backend.clients.entity.Client()));
+        Product product = Product.builder().id(2L).tenantId(1L).price(BigDecimal.valueOf(10.00)).name("P").build();
+        Mockito.when(productRepository.findByIdAndTenantId(2L, 1L)).thenReturn(Optional.of(product));
 
         OrderResponseDTO created = service.create(1L, dto);
         assertThat(created).isNotNull();

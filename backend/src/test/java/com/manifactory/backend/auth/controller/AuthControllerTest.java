@@ -7,6 +7,7 @@ import com.manifactory.backend.auth.jwt.JwtTokenProvider;
 import com.manifactory.backend.auth.entity.AppUser;
 import com.manifactory.backend.auth.entity.AppUserRole;
 import com.manifactory.backend.auth.repository.AppUserRepository;
+import com.manifactory.backend.auth.service.AppUserService;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,8 +22,9 @@ class AuthControllerTest {
     void loginProducesValidJwtWithTenantClaim() {
         AuthenticationManager authManager = Mockito.mock(AuthenticationManager.class);
         AppUserRepository userRepository = Mockito.mock(AppUserRepository.class);
+        AppUserService appUserService = Mockito.mock(AppUserService.class);
         JwtTokenProvider tokenProvider = new JwtTokenProvider("test-secret-please-change-test-secret-please-change", 3600000L);
-        AuthController authController = new AuthController(authManager, tokenProvider, userRepository);
+        AuthController authController = new AuthController(authManager, tokenProvider, userRepository, appUserService);
 
         AuthController.LoginRequest request = new AuthController.LoginRequest();
         request.setUsername("login-user");

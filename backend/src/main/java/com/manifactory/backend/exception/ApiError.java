@@ -15,6 +15,15 @@ public class ApiError {
         return new ApiError(OffsetDateTime.now(), status, exception.getClass().getSimpleName(), exception.getMessage(), path);
     }
 
+    public static ApiError internalServerError(String path) {
+        return new ApiError(
+                OffsetDateTime.now(),
+                500,
+                "InternalServerError",
+                "An unexpected error occurred",
+                path);
+    }
+
     public ApiError(OffsetDateTime timestamp, int status, String error, String message, String path) {
         this.timestamp = timestamp;
         this.status = status;

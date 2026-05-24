@@ -11,6 +11,7 @@ public class AuthBootstrapProperties {
     private String password = "admin123";
     private Long tenantId = 1L;
     private AppUserRole role = AppUserRole.SUPERADMIN;
+    private boolean allowDefaultCredentials = false;
 
     public boolean isEnabled() {
         return enabled;
@@ -50,5 +51,13 @@ public class AuthBootstrapProperties {
 
     public void setRole(AppUserRole role) {
         this.role = role;
+    }
+
+    public boolean isAllowDefaultCredentials() {
+        return allowDefaultCredentials;
+    }
+
+    public void setAllowDefaultCredentials(boolean allowDefaultCredentials) {
+        this.allowDefaultCredentials = allowDefaultCredentials;
     }
 }

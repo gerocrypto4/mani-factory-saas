@@ -92,7 +92,6 @@ class SecurityIntegrationTest {
         CreateOrderItemDTO item = new CreateOrderItemDTO();
         item.setProductId(5L);
         item.setQuantity(2);
-        item.setUnitPrice(BigDecimal.valueOf(25.00));
         createOrder.setItems(List.of(item));
 
         OrderResponseDTO response = new OrderResponseDTO();
