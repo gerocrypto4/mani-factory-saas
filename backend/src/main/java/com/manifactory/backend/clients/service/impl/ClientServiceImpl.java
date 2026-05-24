@@ -7,6 +7,7 @@ import com.manifactory.backend.clients.entity.Client;
 import com.manifactory.backend.clients.mapper.ClientMapper;
 import com.manifactory.backend.clients.repository.ClientRepository;
 import com.manifactory.backend.clients.service.ClientService;
+import com.manifactory.backend.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientResponseDTO getById(Long tenantId, Long id) {
         Client c = repository.findByTenantIdAndId(tenantId, id)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() -> new NotFoundException("Client not found"));
         return mapper.toResponse(c);
     }
 
@@ -41,7 +42,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientResponseDTO update(Long tenantId, Long id, UpdateClientDTO dto) {
         Client c = repository.findByTenantIdAndId(tenantId, id)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() -> new NotFoundException("Client not found"));
         c.setName(dto.getName());
         c.setBusinessName(dto.getBusinessName());
         c.setEmail(dto.getEmail());
@@ -55,7 +56,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void delete(Long tenantId, Long id) {
         Client c = repository.findByTenantIdAndId(tenantId, id)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
+                .orElseThrow(() -> new NotFoundException("Client not found"));
         repository.delete(c);
     }
 }

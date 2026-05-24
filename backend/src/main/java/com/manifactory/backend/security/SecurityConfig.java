@@ -17,9 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtTokenProvider tokenProvider;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
 
-    public SecurityConfig(JwtTokenProvider tokenProvider) {
+    public SecurityConfig(JwtTokenProvider tokenProvider, RestAuthenticationEntryPoint authenticationEntryPoint) {
         this.tokenProvider = tokenProvider;
+        this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
     @Bean
@@ -31,6 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .anyRequest().authenticated())
+            .exceptionHandling(handler -> handler.authenticationEntryPoint(authenticationEntryPoint))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

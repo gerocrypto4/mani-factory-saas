@@ -6,7 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,8 +15,12 @@ public class JwtTokenProvider {
     private final Key key;
     private final long validityMs;
 
-    public JwtTokenProvider(@Value("${jwt.secret:default-secret-please-change}") String secret,
-            @Value("${jwt.expiration-ms:3600000}") long validityMs) {
+    @Autowired
+    public JwtTokenProvider(JwtProperties properties) {
+        this(properties.getSecret(), properties.getExpirationMs());
+    }
+
+    public JwtTokenProvider(String secret, long validityMs) {
         if (secret == null || secret.isBlank() || "default-secret-please-change".equals(secret)) {
             // generate ephemeral key for dev if not set
             this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
@@ -27,6 +31,9 @@ public class JwtTokenProvider {
     }
 
     public String createToken(String username, Long tenantId) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("Tenant ID is required for token creation");
+        }
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("tenantId", tenantId);
         Date now = new Date();

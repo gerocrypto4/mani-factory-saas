@@ -43,6 +43,7 @@ public class Product {
 
     private String imageUrl;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 

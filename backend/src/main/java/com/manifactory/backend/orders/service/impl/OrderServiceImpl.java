@@ -1,10 +1,10 @@
 package com.manifactory.backend.orders.service.impl;
 
+import com.manifactory.backend.exception.NotFoundException;
 import com.manifactory.backend.orders.dto.CreateOrderDTO;
 import com.manifactory.backend.orders.dto.OrderResponseDTO;
 import com.manifactory.backend.orders.dto.UpdateOrderStatusDTO;
 import com.manifactory.backend.orders.entity.Order;
-import com.manifactory.backend.orders.entity.OrderStatus;
 import com.manifactory.backend.orders.mapper.OrderMapper;
 import com.manifactory.backend.orders.repository.OrderRepository;
 import com.manifactory.backend.orders.service.OrderService;
@@ -37,7 +37,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO getById(Long tenantId, Long id) {
         return repository.findByIdAndTenantId(id, tenantId)
                 .map(mapper::toDto)
-                .orElse(null);
+                .orElseThrow(() -> new NotFoundException("Order not found"));
     }
 
     @Override
@@ -51,7 +51,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDTO updateStatus(Long tenantId, Long id, UpdateOrderStatusDTO dto) {
         Order order = repository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+                .orElseThrow(() -> new NotFoundException("Order not found"));
         order.setStatus(dto.getStatus());
         Order saved = repository.save(order);
         return mapper.toDto(saved);
@@ -60,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void delete(Long tenantId, Long id) {
         Order order = repository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+                .orElseThrow(() -> new NotFoundException("Order not found"));
         repository.delete(order);
     }
 }

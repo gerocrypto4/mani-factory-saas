@@ -1,6 +1,7 @@
 package com.manifactory.backend.tenants.service;
 
 import com.manifactory.backend.tenants.dto.CreateTenantDTO;
+import com.manifactory.backend.exception.NotFoundException;
 import com.manifactory.backend.tenants.entity.Tenant;
 import com.manifactory.backend.tenants.mapper.TenantMapper;
 import com.manifactory.backend.tenants.repository.TenantRepository;
@@ -49,7 +50,7 @@ class TenantServiceTest {
     @Test
     void getByIdNotFound() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
-        Exception ex = assertThrows(RuntimeException.class, () -> service.getById(99L));
+        Exception ex = assertThrows(NotFoundException.class, () -> service.getById(99L));
         assertTrue(ex.getMessage().contains("Tenant not found"));
     }
 }

@@ -5,8 +5,6 @@ import com.manifactory.backend.clients.dto.CreateClientDTO;
 import com.manifactory.backend.clients.entity.Client;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class ClientMapper {
     public Client toEntity(CreateClientDTO dto, Long tenantId) {

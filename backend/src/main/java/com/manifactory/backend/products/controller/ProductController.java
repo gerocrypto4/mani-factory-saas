@@ -4,6 +4,7 @@ import com.manifactory.backend.products.dto.CreateProductDTO;
 import com.manifactory.backend.products.dto.ProductResponseDTO;
 import com.manifactory.backend.products.dto.UpdateProductDTO;
 import com.manifactory.backend.products.service.ProductService;
+import com.manifactory.backend.security.TenantResolver;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,39 +30,37 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductResponseDTO> create(@RequestBody CreateProductDTO dto) {
-        Long tenantId = dto.getTenantId();
-        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
-        dto.setTenantId(tenantId);
+        Long resolvedTenant = TenantResolver.resolve(dto.getTenantId());
+        dto.setTenantId(resolvedTenant);
         ProductResponseDTO created = service.create(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<ProductResponseDTO>> list(@RequestParam(required = false) Long tenantId) {
-        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
-        return ResponseEntity.ok(service.listByTenant(tenantId));
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        return ResponseEntity.ok(service.listByTenant(resolvedTenant));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponseDTO> get(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
-        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
-        ProductResponseDTO dto = service.getById(tenantId, id);
-        if (dto == null) return ResponseEntity.notFound().build();
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        ProductResponseDTO dto = service.getById(resolvedTenant, id);
         return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponseDTO> update(@RequestParam(required = false) Long tenantId, @PathVariable Long id,
             @RequestBody UpdateProductDTO dto) {
-        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
-        ProductResponseDTO updated = service.update(tenantId, id, dto);
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        ProductResponseDTO updated = service.update(resolvedTenant, id, dto);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
-        if (tenantId == null) tenantId = com.manifactory.backend.security.TenantContextHolder.getTenantId();
-        service.delete(tenantId, id);
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        service.delete(resolvedTenant, id);
         return ResponseEntity.noContent().build();
     }
 }

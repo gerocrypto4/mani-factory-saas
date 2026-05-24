@@ -14,7 +14,8 @@ Base path: `/api/v1`
   - Body: `{ "name": "Nombre", "active": true }`
 - `DELETE /api/v1/tenants/{id}` - Eliminar tenant
 
-Responses follow the ApiResponse wrapper (success, message, data).
+Successful responses return resource DTOs directly (or lists of DTOs).
+Errors return a standardized `ApiError` payload from `GlobalExceptionHandler`.
 
 Ejemplo minimal DTOs y formatos en `src/main/java/com/manifactory/backend/tenants/dto`.
 

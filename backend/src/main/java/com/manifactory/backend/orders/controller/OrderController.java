@@ -4,7 +4,7 @@ import com.manifactory.backend.orders.dto.CreateOrderDTO;
 import com.manifactory.backend.orders.dto.OrderResponseDTO;
 import com.manifactory.backend.orders.dto.UpdateOrderStatusDTO;
 import com.manifactory.backend.orders.service.OrderService;
-import com.manifactory.backend.security.TenantContextHolder;
+import com.manifactory.backend.security.TenantResolver;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -31,46 +31,36 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponseDTO> create(@RequestParam(required = false) Long tenantId,
             @Valid @RequestBody CreateOrderDTO dto) {
-        if (tenantId == null) {
-            tenantId = TenantContextHolder.getTenantId();
-        }
-        OrderResponseDTO created = service.create(tenantId, dto);
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        OrderResponseDTO created = service.create(resolvedTenant, dto);
         return ResponseEntity.status(201).body(created);
     }
 
     @GetMapping
     public ResponseEntity<List<OrderResponseDTO>> list(@RequestParam(required = false) Long tenantId) {
-        if (tenantId == null) {
-            tenantId = TenantContextHolder.getTenantId();
-        }
-        return ResponseEntity.ok(service.listByTenant(tenantId));
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        return ResponseEntity.ok(service.listByTenant(resolvedTenant));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDTO> get(@RequestParam(required = false) Long tenantId,
             @PathVariable Long id) {
-        if (tenantId == null) {
-            tenantId = TenantContextHolder.getTenantId();
-        }
-        OrderResponseDTO dto = service.getById(tenantId, id);
-        return dto == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(dto);
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        OrderResponseDTO dto = service.getById(resolvedTenant, id);
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderResponseDTO> updateStatus(@RequestParam(required = false) Long tenantId,
             @PathVariable Long id, @Valid @RequestBody UpdateOrderStatusDTO dto) {
-        if (tenantId == null) {
-            tenantId = TenantContextHolder.getTenantId();
-        }
-        return ResponseEntity.ok(service.updateStatus(tenantId, id, dto));
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        return ResponseEntity.ok(service.updateStatus(resolvedTenant, id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@RequestParam(required = false) Long tenantId, @PathVariable Long id) {
-        if (tenantId == null) {
-            tenantId = TenantContextHolder.getTenantId();
-        }
-        service.delete(tenantId, id);
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        service.delete(resolvedTenant, id);
         return ResponseEntity.noContent().build();
     }
 }

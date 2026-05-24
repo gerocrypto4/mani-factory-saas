@@ -1,5 +1,6 @@
 package com.manifactory.backend.products.service.impl;
 
+import com.manifactory.backend.exception.NotFoundException;
 import com.manifactory.backend.products.dto.CreateProductDTO;
 import com.manifactory.backend.products.dto.ProductResponseDTO;
 import com.manifactory.backend.products.dto.UpdateProductDTO;
@@ -36,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDTO getById(Long tenantId, Long id) {
         return repository.findByIdAndTenantId(id, tenantId)
                 .map(mapper::toDto)
-                .orElse(null);
+                .orElseThrow(() -> new NotFoundException("Product not found"));
     }
 
     @Override
@@ -50,7 +51,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO update(Long tenantId, Long id, UpdateProductDTO dto) {
         Product product = repository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new NotFoundException("Product not found"));
         mapper.updateEntity(product, dto);
         Product saved = repository.save(product);
         return mapper.toDto(saved);
@@ -59,7 +60,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void delete(Long tenantId, Long id) {
         Product product = repository.findByIdAndTenantId(id, tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new NotFoundException("Product not found"));
         repository.delete(product);
     }
 }

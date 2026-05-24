@@ -1,5 +1,6 @@
 package com.manifactory.backend.tenants.service.impl;
 
+import com.manifactory.backend.exception.NotFoundException;
 import com.manifactory.backend.tenants.dto.CreateTenantDTO;
 import com.manifactory.backend.tenants.dto.TenantResponseDTO;
 import com.manifactory.backend.tenants.dto.UpdateTenantDTO;
@@ -28,7 +29,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public TenantResponseDTO getById(Long id) {
-        Tenant t = repository.findById(id).orElseThrow(() -> new RuntimeException("Tenant not found"));
+        Tenant t = repository.findById(id).orElseThrow(() -> new NotFoundException("Tenant not found"));
         return mapper.toResponse(t);
     }
 
@@ -39,7 +40,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public TenantResponseDTO update(Long id, UpdateTenantDTO dto) {
-        Tenant t = repository.findById(id).orElseThrow(() -> new RuntimeException("Tenant not found"));
+        Tenant t = repository.findById(id).orElseThrow(() -> new NotFoundException("Tenant not found"));
         t.setName(dto.getName());
         if (dto.getActive() != null) t.setActive(dto.getActive());
         Tenant saved = repository.save(t);
