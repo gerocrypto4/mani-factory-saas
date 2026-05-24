@@ -63,7 +63,7 @@ class SecurityIntegrationTest {
     @Test
     void shouldUseTenantFromJwtForProductList() throws Exception {
         Long tenantId = 101L;
-        String token = tokenProvider.createToken("user@example.com", tenantId);
+        String token = tokenProvider.createToken("user@example.com", tenantId, "USER");
 
         ProductResponseDTO product = new ProductResponseDTO();
         product.setId(1L);
@@ -85,7 +85,7 @@ class SecurityIntegrationTest {
     @Test
     void shouldUseTenantFromJwtForOrderCreation() throws Exception {
         Long tenantId = 55L;
-        String token = tokenProvider.createToken("order-user", tenantId);
+        String token = tokenProvider.createToken("order-user", tenantId, "USER");
 
         CreateOrderDTO createOrder = new CreateOrderDTO();
         createOrder.setClientId(22L);
@@ -119,7 +119,7 @@ class SecurityIntegrationTest {
     @Test
     void shouldUseTenantFromJwtForClientCreate() throws Exception {
         Long tenantId = 17L;
-        String token = tokenProvider.createToken("client-user", tenantId);
+        String token = tokenProvider.createToken("client-user", tenantId, "USER");
 
         CreateClientDTO createClient = new CreateClientDTO();
         createClient.setName("Test Client");
@@ -144,7 +144,7 @@ class SecurityIntegrationTest {
     @Test
     void shouldReturnStandardNotFoundError() throws Exception {
         Long tenantId = 4L;
-        String token = tokenProvider.createToken("user@example.com", tenantId);
+        String token = tokenProvider.createToken("user@example.com", tenantId, "USER");
 
         Mockito.when(productService.getById(eq(tenantId), eq(99L)))
                 .thenThrow(new NotFoundException("Product not found"));

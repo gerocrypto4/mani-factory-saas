@@ -9,6 +9,31 @@
       "name": "jwt.expiration-ms",
       "type": "java.lang.Long",
       "description": "JWT expiration time in milliseconds."
+    },
+    {
+      "name": "auth.bootstrap.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables automatic bootstrap user creation at startup."
+    },
+    {
+      "name": "auth.bootstrap.username",
+      "type": "java.lang.String",
+      "description": "Bootstrap username."
+    },
+    {
+      "name": "auth.bootstrap.password",
+      "type": "java.lang.String",
+      "description": "Bootstrap password."
+    },
+    {
+      "name": "auth.bootstrap.tenant-id",
+      "type": "java.lang.Long",
+      "description": "Bootstrap tenant id."
+    },
+    {
+      "name": "auth.bootstrap.role",
+      "type": "com.manifactory.backend.auth.entity.AppUserRole",
+      "description": "Bootstrap user role."
     }
   ]
 }

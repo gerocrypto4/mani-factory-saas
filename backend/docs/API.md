@@ -13,6 +13,7 @@ Base path: `/api/v1`
 - `PUT /api/v1/tenants/{id}` - Actualizar tenant
   - Body: `{ "name": "Nombre", "active": true }`
 - `DELETE /api/v1/tenants/{id}` - Eliminar tenant
+- Requiere rol `SUPERADMIN`
 
 Successful responses return resource DTOs directly (or lists of DTOs).
 Errors return a standardized `ApiError` payload from `GlobalExceptionHandler`.
@@ -28,6 +29,7 @@ Ejemplo minimal DTOs y formatos en `src/main/java/com/manifactory/backend/tenant
 - `PUT /api/v1/clients/{id}?tenantId={tenantId}` - Actualizar cliente
   - Body: `{ "name": "Nombre", "businessName": "Negocio", "email": "x@x.com" }`
 - `DELETE /api/v1/clients/{id}?tenantId={tenantId}` - Eliminar cliente
+- Si el usuario no es `SUPERADMIN`, `tenantId` debe coincidir con el tenant del JWT
 
 Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 
@@ -39,6 +41,7 @@ Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 - `GET /api/v1/products/{id}?tenantId={tenantId}` - Obtener producto por id
 - `PUT /api/v1/products/{id}?tenantId={tenantId}` - Actualizar producto
 - `DELETE /api/v1/products/{id}?tenantId={tenantId}` - Eliminar producto
+- Si el usuario no es `SUPERADMIN`, `tenantId` debe coincidir con el tenant del JWT
 
 ### Orders
 
@@ -49,3 +52,22 @@ Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 - `PUT /api/v1/orders/{id}/status?tenantId={tenantId}` - Actualizar estado de orden
   - Body: `{ "status": "CONFIRMED" }`
 - `DELETE /api/v1/orders/{id}?tenantId={tenantId}` - Eliminar orden
+- Si el usuario no es `SUPERADMIN`, `tenantId` debe coincidir con el tenant del JWT
+
+### Users
+
+- `GET /api/v1/users` - Listar usuarios
+  - Query opcional: `tenantId`
+- `POST /api/v1/users` - Crear usuario
+  - Body: `{ "username": "operador1", "password": "secret", "tenantId": 1, "role": "ADMIN", "active": true }`
+- `PUT /api/v1/users/{id}` - Actualizar tenant/rol/estado
+  - Body: `{ "tenantId": 1, "role": "USER", "active": true }`
+- `PUT /api/v1/users/{id}/password` - Cambiar password
+  - Body: `{ "password": "newSecret" }`
+- Requiere rol `SUPERADMIN`
+
+### Auth
+
+- `POST /api/v1/auth/login`
+  - Body: `{ "username": "admin", "password": "admin123" }`
+  - Devuelve JWT con claims `tenantId` y `role`

@@ -1,9 +1,10 @@
 package com.manifactory.backend.auth.controller;
 
+import com.manifactory.backend.auth.repository.AppUserRepository;
 import com.manifactory.backend.auth.jwt.JwtTokenProvider;
+import com.manifactory.backend.exception.NotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,10 +22,12 @@ public class AuthController {
 
     private final AuthenticationManager authManager;
     private final JwtTokenProvider tokenProvider;
+    private final AppUserRepository appUserRepository;
 
-    public AuthController(AuthenticationManager authManager, JwtTokenProvider tokenProvider) {
+    public AuthController(AuthenticationManager authManager, JwtTokenProvider tokenProvider, AppUserRepository appUserRepository) {
         this.authManager = authManager;
         this.tokenProvider = tokenProvider;
+        this.appUserRepository = appUserRepository;
     }
 
     @PostMapping("/login")
@@ -33,9 +36,14 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        // in a real app, lookup tenantId per user; accept tenantId in request for now
-        Long tenantId = req.getTenantId();
-        String token = tokenProvider.createToken(req.getUsername(), tenantId);
+        var user = appUserRepository.findByUsername(req.getUsername())
+                .filter(u -> u.isActive())
+                .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
+
+        Long tenantId = user.getTenantId();
+        String role = user.getRole().name();
+
+        String token = tokenProvider.createToken(req.getUsername(), tenantId, role);
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
@@ -46,9 +54,6 @@ public class AuthController {
 
         @NotBlank
         private String password;
-
-        @NotNull
-        private Long tenantId;
     }
 
     @Data

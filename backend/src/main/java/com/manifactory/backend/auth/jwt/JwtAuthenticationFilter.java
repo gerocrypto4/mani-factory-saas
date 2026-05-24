@@ -7,7 +7,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -34,11 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long tenantId = null;
                 if (tenantObj instanceof Integer) tenantId = ((Integer) tenantObj).longValue();
                 else if (tenantObj instanceof Long) tenantId = (Long) tenantObj;
+                String role = claims.get("role", String.class);
 
                 // set tenant context
                 if (tenantId != null) TenantContextHolder.setTenantId(tenantId);
 
-                User principal = new User(username, "", java.util.Collections.emptyList());
+                List<SimpleGrantedAuthority> authorities = Collections.emptyList();
+                if (role != null && !role.isBlank()) {
+                    authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+                }
+                User principal = new User(username, "", authorities);
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, token,
                         principal.getAuthorities());
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

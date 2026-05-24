@@ -30,12 +30,16 @@ public class JwtTokenProvider {
         this.validityMs = validityMs;
     }
 
-    public String createToken(String username, Long tenantId) {
+    public String createToken(String username, Long tenantId, String role) {
         if (tenantId == null) {
             throw new IllegalArgumentException("Tenant ID is required for token creation");
         }
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("Role is required for token creation");
+        }
         Claims claims = Jwts.claims().setSubject(username);
         claims.put("tenantId", tenantId);
+        claims.put("role", role);
         Date now = new Date();
         Date exp = new Date(now.getTime() + validityMs);
         return Jwts.builder().setClaims(claims).setIssuedAt(now).setExpiration(exp).signWith(key).compact();

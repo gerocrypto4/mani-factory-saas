@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.manifactory.backend.auth.jwt.JwtTokenProvider;
+import com.manifactory.backend.auth.entity.AppUser;
+import com.manifactory.backend.auth.entity.AppUserRole;
+import com.manifactory.backend.auth.repository.AppUserRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.ResponseEntity;
@@ -16,16 +20,24 @@ class AuthControllerTest {
     @Test
     void loginProducesValidJwtWithTenantClaim() {
         AuthenticationManager authManager = Mockito.mock(AuthenticationManager.class);
+        AppUserRepository userRepository = Mockito.mock(AppUserRepository.class);
         JwtTokenProvider tokenProvider = new JwtTokenProvider("test-secret-please-change-test-secret-please-change", 3600000L);
-        AuthController authController = new AuthController(authManager, tokenProvider);
+        AuthController authController = new AuthController(authManager, tokenProvider, userRepository);
 
         AuthController.LoginRequest request = new AuthController.LoginRequest();
         request.setUsername("login-user");
         request.setPassword("password");
-        request.setTenantId(88L);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
         Mockito.when(authManager.authenticate(Mockito.any())).thenReturn(authentication);
+        Mockito.when(userRepository.findByUsername("login-user")).thenReturn(Optional.of(AppUser.builder()
+                .id(1L)
+                .username("login-user")
+                .tenantId(88L)
+                .role(AppUserRole.ADMIN)
+                .passwordHash("$2a$10$test")
+                .active(true)
+                .build()));
 
         ResponseEntity<AuthController.LoginResponse> response = authController.login(request);
 
@@ -36,5 +48,6 @@ class AuthControllerTest {
         assertNotNull(token);
         assertEquals("login-user", tokenProvider.getClaims(token).getSubject());
         assertEquals(88L, ((Number) tokenProvider.getClaims(token).get("tenantId")).longValue());
+        assertEquals("ADMIN", tokenProvider.getClaims(token).get("role"));
     }
 }
