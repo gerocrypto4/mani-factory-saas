@@ -38,3 +38,13 @@ Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 - `GET /api/v1/products/{id}?tenantId={tenantId}` - Obtener producto por id
 - `PUT /api/v1/products/{id}?tenantId={tenantId}` - Actualizar producto
 - `DELETE /api/v1/products/{id}?tenantId={tenantId}` - Eliminar producto
+
+### Orders
+
+- `GET /api/v1/orders?tenantId={tenantId}` - Listar órdenes del tenant
+- `POST /api/v1/orders` - Crear orden
+  - Body: `{ "tenantId": 1, "clientId": 1, "items": [{ "productId": 2, "quantity": 3, "unitPrice": 10.50 }] }`
+- `GET /api/v1/orders/{id}?tenantId={tenantId}` - Obtener orden por id
+- `PUT /api/v1/orders/{id}/status?tenantId={tenantId}` - Actualizar estado de orden
+  - Body: `{ "status": "CONFIRMED" }`
+- `DELETE /api/v1/orders/{id}?tenantId={tenantId}` - Eliminar orden
