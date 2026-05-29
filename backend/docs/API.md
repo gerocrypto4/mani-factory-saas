@@ -8,6 +8,18 @@ OpenAPI:
 - Swagger UI: `/swagger-ui.html`
 - OpenAPI JSON: `/v3/api-docs`
 
+### Public (sin login)
+
+- `GET /api/v1/public/catalog/products?tenantId={tenantId}` - Catalogo publico (solo productos activos)
+- `POST /api/v1/public/orders?tenantId={tenantId}` - Crear pedido publico
+  - Body:
+    - `name`
+    - `businessName` (opcional)
+    - `phone` (opcional)
+    - `city` (opcional)
+    - `preferredTransport` (opcional)
+    - `items`: `[{ "productId": 2, "quantity": 3 }]`
+
 ### Tenants
 
 - `GET /api/v1/tenants` - Listar tenants

@@ -1,6 +1,31 @@
 {
   "properties": [
     {
+      "name": "app.cors.allowed-origins",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Allowed CORS origins."
+    },
+    {
+      "name": "app.rate-limit.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables request rate limiting."
+    },
+    {
+      "name": "app.rate-limit.max-requests",
+      "type": "java.lang.Integer",
+      "description": "Maximum requests allowed within the rate limit window."
+    },
+    {
+      "name": "app.rate-limit.window-seconds",
+      "type": "java.lang.Integer",
+      "description": "Rate limit window size in seconds."
+    },
+    {
+      "name": "app.rate-limit.login-max-requests",
+      "type": "java.lang.Integer",
+      "description": "Maximum login requests allowed within the rate limit window."
+    },
+    {
       "name": "jwt.secret",
       "type": "java.lang.String",
       "description": "Secret key used to sign JWT tokens."
@@ -34,6 +59,26 @@
       "name": "auth.bootstrap.role",
       "type": "com.manifactory.backend.auth.entity.AppUserRole",
       "description": "Bootstrap user role."
+    },
+    {
+      "name": "auth.bootstrap.allow-default-credentials",
+      "type": "java.lang.Boolean",
+      "description": "Allows default bootstrap credentials in local development."
+    },
+    {
+      "name": "jwt.allow-insecure-dev-key",
+      "type": "java.lang.Boolean",
+      "description": "Allows the insecure development JWT signing key."
+    },
+    {
+      "name": "spring.flyway.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables Flyway database migrations."
+    },
+    {
+      "name": "spring.flyway.locations",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Flyway migration locations."
     }
   ]
 }

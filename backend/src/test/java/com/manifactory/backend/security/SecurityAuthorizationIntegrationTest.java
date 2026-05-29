@@ -133,6 +133,13 @@ class SecurityAuthorizationIntegrationTest {
     }
 
     @Test
+    void publicCatalogShouldBeAccessibleWithoutToken() throws Exception {
+        mockMvc.perform(get("/api/v1/public/catalog/products")
+                        .param("tenantId", "1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void createUserShouldReturnUnauthorizedWithoutToken() throws Exception {
         mockMvc.perform(post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,0 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Oswald:wght@500;700&family=Inter:wght@400;600;700;800&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,700&display=swap");
+
+:root {
+  --cj-dark: #1a1209;
+  --cj-dark2: #272010;
+  --cj-darkest: #0f0c06;
+  --cj-gold: #c8861a;
+  --cj-gold-lt: #e8a832;
+  --cj-cream: #f5f0e8;
+  --cj-cream2: #ede7d8;
+  --cj-muted: #7a6a52;
+  --cj-scroll: 0%;
+}
