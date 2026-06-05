@@ -31,7 +31,16 @@ Configuración de entorno:
   - `SPRING_DATASOURCE_PASSWORD`
   - `JWT_SECRET`
   - `JWT_EXPIRATION_MS`
-- `src/main/resources/application.properties` usa valores por defecto si no hay variables de entorno.
+- `src/main/resources/application.properties` exige `JWT_SECRET` y mantiene la configuración de release segura.
+
+Perfiles recomendados:
+- `dev`: arranque local con valores comodines para desarrollo.
+- `prod`: requiere `APP_CORS_ALLOWED_ORIGINS` real y deshabilita bootstrap de usuarios.
+
+Ejemplo para desarrollo local:
+```bash
+SPRING_PROFILES_ACTIVE=dev
+```
 
 Notas importantes:
 - No comites `src/main/resources/application.properties` (está en `.gitignore`).
@@ -55,7 +64,7 @@ Auth (estado actual):
 - El `tenantId` y `role` del JWT se resuelven desde el usuario autenticado en base de datos.
 - Se crea un usuario bootstrap autom\u00e1tico al iniciar (si no existe):
   - `username=admin`
-  - `password=admin123`
+  - `password=admin`
   - `tenantId=1`
   - `role=SUPERADMIN`
 - Cambiar esa clave inmediatamente en entornos reales.
@@ -70,7 +79,7 @@ Política mínima de password:
 Configuraci\u00f3n bootstrap auth (opcional):
 - `AUTH_BOOTSTRAP_ENABLED` (default `true`)
 - `AUTH_BOOTSTRAP_USERNAME` (default `admin`)
-- `AUTH_BOOTSTRAP_PASSWORD` (default `admin123`)
+- `AUTH_BOOTSTRAP_PASSWORD` (default `admin`)
 - `AUTH_BOOTSTRAP_TENANT_ID` (default `1`)
 - `AUTH_BOOTSTRAP_ROLE` (default `SUPERADMIN`)
 
@@ -94,3 +103,4 @@ Hardening aplicado:
 
 Release:
 - Checklist operativa en `docs/RELEASE_CHECKLIST.md`.
+- Plan de rollback en `docs/ROLLBACK_PLAN.md`.

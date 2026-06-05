@@ -22,4 +22,4 @@
 ## Operacion
 - [ ] Variables de entorno documentadas y cargadas en el entorno.
 - [ ] Logs de aplicacion y errores centralizados.
-- [ ] Plan de rollback definido.
+- [x] Plan de rollback definido. Ver `docs/ROLLBACK_PLAN.md`.

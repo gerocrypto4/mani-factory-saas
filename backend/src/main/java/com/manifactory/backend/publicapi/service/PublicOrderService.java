@@ -77,21 +77,22 @@ public class PublicOrderService {
     }
 
     private Long resolveOrCreateClient(Long tenantId, PublicOrderRequestDTO request) {
-        if (request.getPhone() != null && !request.getPhone().isBlank()) {
-            return clientRepository.findFirstByTenantIdAndPhone(tenantId, request.getPhone())
+        String phone = normalize(request.getPhone());
+        if (phone != null) {
+            return clientRepository.findFirstByTenantIdAndPhone(tenantId, phone)
                     .map(Client::getId)
-                    .orElseGet(() -> createClientAndReturnId(tenantId, request));
+                    .orElseGet(() -> createClientAndReturnId(tenantId, request, phone));
         }
-        return createClientAndReturnId(tenantId, request);
+        return createClientAndReturnId(tenantId, request, null);
     }
 
-    private Long createClientAndReturnId(Long tenantId, PublicOrderRequestDTO request) {
+    private Long createClientAndReturnId(Long tenantId, PublicOrderRequestDTO request, String normalizedPhone) {
         CreateClientDTO dto = new CreateClientDTO();
-        dto.setName(request.getName());
-        dto.setBusinessName(request.getBusinessName());
-        dto.setPhone(request.getPhone());
-        dto.setCity(request.getCity());
-        dto.setPreferredTransport(request.getPreferredTransport());
+        dto.setName(normalize(request.getName()));
+        dto.setBusinessName(normalize(request.getBusinessName()));
+        dto.setPhone(normalizedPhone);
+        dto.setCity(normalize(request.getCity()));
+        dto.setPreferredTransport(normalize(request.getPreferredTransport()));
         Client client = Client.builder()
                 .tenantId(tenantId)
                 .name(dto.getName())
@@ -101,6 +102,14 @@ public class PublicOrderService {
                 .preferredTransport(dto.getPreferredTransport())
                 .build();
         return clientRepository.save(client).getId();
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private List<CreateOrderItemDTO> toOrderItems(PublicOrderRequestDTO request) {

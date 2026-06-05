@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { buildProductDetailPath } from "../../data/productCatalog";
 
 export default function ProductCard({ product, delay = 0 }) {
   return (
@@ -26,8 +27,8 @@ export default function ProductCard({ product, delay = 0 }) {
         <h3 className="cj-prod-title">{product.name}</h3>
         <p className="cj-prod-desc">{product.desc}</p>
         <div className="cj-prod-footer">
-          <Link to="/pedido" className="cj-prod-link">
-            Consultar precio →
+          <Link to={buildProductDetailPath(product)} className="cj-prod-link">
+            Ver detalle →
           </Link>
         </div>
       </div>

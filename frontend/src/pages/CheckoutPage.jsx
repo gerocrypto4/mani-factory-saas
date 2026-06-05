@@ -58,13 +58,12 @@ export default function CheckoutPage() {
   }
 
   return (
-    <section className="space-y-8">
-      <div className="commerce-hero">
+    <section className="pedido-page checkout-page space-y-8">
+      <div className="commerce-hero commerce-hero-premium">
         <p className="commerce-kicker">Ventas</p>
-        <h2>Confirmacion comercial de pedido</h2>
+        <h2>Confirmá tu compra mayorista</h2>
         <p>
-          Pedido minimo {formatKg(ORDER_RULES.minOrderKg)}. Cada bolsa es de {formatKg(ORDER_RULES.bagWeightKg)} y cada sabor se vende
-          con minimo de {formatKg(ORDER_RULES.minKgPerFlavor)}.
+          Revisá el carrito, completá los datos comerciales y cerrá el pedido cuando llegues al mínimo de compra.
         </p>
         <div className="commerce-badges">
           <span>1. Revisar carrito</span>
@@ -88,46 +87,64 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="commerce-card p-5">
-          <h2 className="text-xl font-semibold text-[#1f2937]">Resumen del pedido</h2>
-          <div className="mt-4 space-y-3">
-            {items.length === 0 && <p className="text-sm text-[#64748b]">No hay productos en el pedido.</p>}
+      <section className="checkout-grid">
+        <div className="commerce-card commerce-card-dark">
+          <div className="checkout-card-head">
+            <div>
+              <p className="checkout-card-kicker">Pedido actual</p>
+              <h2 className="checkout-card-title">Resumen del carrito</h2>
+            </div>
+            <p className="checkout-card-total-label">Total estimado</p>
+          </div>
+
+          <div className="checkout-list">
+            {items.length === 0 && <p className="checkout-empty">No hay productos en el pedido.</p>}
             {items.map((it) => (
-              <div key={it.id} className="rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+              <article key={it.id} className="checkout-item">
+                <div className="checkout-item-top">
+                  <div className="checkout-item-media">
                     <img
                       src={it.imageUrl || resolveProductVisual(it.name).image}
                       alt={it.name}
-                      className="h-12 w-12 rounded-lg border border-[#dbe3ea] object-cover"
+                      className="checkout-item-image"
                       onError={(e) => {
                         e.currentTarget.src = resolveProductVisual(it.name).image;
                       }}
                     />
-                    <p className="font-medium text-[#1f2937]">{it.name}</p>
+                    <div>
+                      <p className="checkout-item-name">{it.name}</p>
+                      <p className="checkout-item-meta">{formatKg(it.quantity)} · {formatCurrency(Number(it.price) * it.quantity)}</p>
+                    </div>
                   </div>
-                  <button className="text-xs text-[#b91c1c]" onClick={() => removeItem(it.id)}>
+                  <button className="checkout-remove" onClick={() => removeItem(it.id)}>
                     Quitar
                   </button>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-sm">
+
+                <div className="checkout-item-bottom">
                   <input
                     type="number"
                     min={ORDER_RULES.minKgPerFlavor}
                     step={ORDER_RULES.minKgPerFlavor}
                     value={it.quantity}
                     onChange={(e) => setQuantity(it.id, Number(e.target.value))}
-                    className="w-20 rounded-lg border border-[#cbd5e1] bg-white px-2 py-1"
+                    className="checkout-quantity-input"
                   />
-                  <p className="font-semibold text-[#b37422]">{formatCurrency(Number(it.price) * it.quantity)}</p>
+                  <p className="checkout-item-price">{formatCurrency(Number(it.price) * it.quantity)}</p>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
-          <div className="mt-4 border-t border-[#e2e8f0] pt-4">
-            <p className="text-sm text-[#64748b]">Total estimado</p>
-            <p className="text-3xl font-bold text-[#b37422]">{formatCurrency(total)}</p>
+
+          <div className="checkout-summary">
+            <div className="checkout-summary-row">
+              <span>Total estimado</span>
+              <strong>{formatCurrency(total)}</strong>
+            </div>
+            <div className="checkout-summary-row">
+              <span>Kilos totales</span>
+              <strong>{formatKg(totalKg)}</strong>
+            </div>
             <div className="pedido-progress mt-3">
               <div className="pedido-progress-track">
                 <div className="pedido-progress-fill" style={{ width: `${progressPercent}%` }} />
@@ -136,39 +153,46 @@ export default function CheckoutPage() {
                 {formatKg(totalKg)} / {formatKg(ORDER_RULES.minOrderKg)}
               </span>
             </div>
-            <p className="mt-2 text-sm text-[#64748b]">
+            <p className="checkout-note">
               {remainingKg > 0 ? `Faltan ${formatKg(remainingKg)} para llegar al minimo de compra.` : "Ya superaste el minimo de compra."}
             </p>
           </div>
         </div>
 
-        <form className="commerce-card p-5" onSubmit={handleSubmit}>
-          <h2 className="text-xl font-semibold text-[#1f2937]">Datos comerciales</h2>
-          <div className="mt-4 space-y-3">
+        <form className="commerce-card commerce-card-dark" onSubmit={handleSubmit}>
+          <div className="checkout-card-head">
+            <div>
+              <p className="checkout-card-kicker">Datos comerciales</p>
+              <h2 className="checkout-card-title">Confirmación del pedido</h2>
+            </div>
+          </div>
+
+          <div className="checkout-form">
             <Field label="Nombre" value={form.name} onChange={(value) => setForm({ ...form, name: value })} />
             <Field label="Negocio" value={form.businessName} onChange={(value) => setForm({ ...form, businessName: value })} />
-            <Field label="Telefono" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
+            <Field label="Teléfono" value={form.phone} onChange={(value) => setForm({ ...form, phone: value })} />
             <Field label="Ciudad" value={form.city} onChange={(value) => setForm({ ...form, city: value })} />
-            <label className="block text-sm">
-              <span className="mb-1 block text-[#64748b]">Transporte preferido</span>
+            <label className="checkout-field checkout-field-select">
+              <span className="checkout-field-label">Transporte preferido</span>
               <select
-                className="w-full rounded-xl border border-[#cbd5e1] bg-white px-3 py-2"
+                className="checkout-select"
                 value={form.preferredTransport}
                 onChange={(e) => setForm({ ...form, preferredTransport: e.target.value })}
               >
-                <option>Retiro en fabrica</option>
+                <option>Retiro en fábrica</option>
                 <option>Transporte propio</option>
                 <option>Logistica asociada</option>
               </select>
             </label>
           </div>
-          {error && <p className="mt-3 text-sm text-[#b91c1c]">{error}</p>}
+
+          {error && <p className="checkout-error">{error}</p>}
           {!canSubmit && remainingKg > 0 && (
-            <p className="mt-3 text-sm text-[#b37422]">
+            <p className="mt-3 text-sm text-[#f4c66c]">
               El pedido minimo es {formatKg(ORDER_RULES.minOrderKg)}. Te faltan {formatKg(remainingKg)} para poder confirmarlo.
             </p>
           )}
-          <button disabled={!canSubmit || submitting} className="btn-primary mt-5 w-full disabled:opacity-60">
+          <button disabled={!canSubmit || submitting} className="btn-primary checkout-submit disabled:opacity-60">
             {submitting ? "Enviando..." : "Confirmar pedido mayorista"}
           </button>
         </form>
@@ -179,13 +203,9 @@ export default function CheckoutPage() {
 
 function Field({ label, value, onChange }) {
   return (
-    <label className="block text-sm">
-      <span className="mb-1 block text-[#64748b]">{label}</span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-[#cbd5e1] bg-white px-3 py-2"
-      />
+    <label className="checkout-field">
+      <span className="checkout-field-label">{label}</span>
+      <input value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
 }

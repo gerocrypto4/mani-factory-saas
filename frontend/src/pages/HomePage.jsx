@@ -168,17 +168,22 @@ export default function HomePage() {
 
   const heroPeanuts = useMemo(() => {
     const rand = mulberry32(1966);
-    return Array.from({ length: 56 }, (_, index) => {
-      const x = -20 + rand() * 1040;
-      const y = -20 + rand() * 740;
-      const scale = 0.34 + rand() * 0.3;
-      const rotate = -26 + rand() * 52;
-      const tone = 0.16 + rand() * 0.12;
-      const rx = 17 + rand() * 3.5;
-      const ry = 10 + rand() * 2.6;
+    const peanuts = [];
+    for (let i = 0; i < 32; i++) {
+      let x, y, validPos = false;
+      while (!validPos) {
+        x = -20 + rand() * 1040;
+        y = -20 + rand() * 740;
+        validPos = !peanuts.some(p => Math.hypot(p.x - x, p.y - y) < 140);
+      }
+      const scale = 0.58 + rand() * 0.38;
+      const rotate = 55 + rand() * 65;
+      const tone = 0.24 + rand() * 0.18;
+      const rx = 28 + rand() * 8;
+      const ry = 16 + rand() * 5;
 
-      return {
-        id: index,
+      peanuts.push({
+        id: i,
         x,
         y,
         scale,
@@ -187,8 +192,9 @@ export default function HomePage() {
         flip: rand() > 0.5 ? 1 : -1,
         rx,
         ry,
-      };
-    });
+      });
+    }
+    return peanuts;
   }, []);
 
   return (
@@ -222,27 +228,55 @@ export default function HomePage() {
             </filter>
           </defs>
           <rect x="0" y="0" width="1000" height="700" fill="url(#cjHeroPeanutGlow)" />
-          {heroPeanuts.map((peanut) => (
-            <g
-              key={peanut.id}
-              transform={`translate(${peanut.x} ${peanut.y}) rotate(${peanut.rotate}) scale(${peanut.scale} ${peanut.scale}) scale(${peanut.flip} 1)`}
-              filter="url(#cjHeroPeanutShadow)"
-              opacity={peanut.tone}
-            >
-              <path
-                d={`M ${-peanut.rx} 0 C ${-peanut.rx} ${-peanut.ry * 0.72} ${-peanut.rx * 0.48} ${-peanut.ry} 0 ${-peanut.ry} C ${peanut.rx * 0.48} ${-peanut.ry} ${peanut.rx} ${-peanut.ry * 0.72} ${peanut.rx} 0 C ${peanut.rx} ${peanut.ry * 0.72} ${peanut.rx * 0.48} ${peanut.ry} 0 ${peanut.ry} C ${-peanut.rx * 0.48} ${peanut.ry} ${-peanut.rx} ${peanut.ry * 0.72} ${-peanut.rx} 0 Z`}
-                fill="url(#cjHeroPeanutBody)"
-              />
-              <path
-                d={`M ${-(peanut.rx * 0.58)} 0 C ${-(peanut.rx * 0.24)} ${-peanut.ry * 0.16} ${peanut.rx * 0.24} ${-peanut.ry * 0.16} ${peanut.rx * 0.58} 0`}
-                fill="none"
-                stroke="url(#cjHeroPeanutSeam)"
-                strokeWidth="1.25"
-                strokeLinecap="round"
-              />
-              <path d={`M ${-(peanut.rx * 0.46)} ${-peanut.ry * 0.42} C ${-(peanut.rx * 0.18)} ${-peanut.ry * 0.56} ${peanut.rx * 0.18} ${-peanut.ry * 0.56} ${peanut.rx * 0.46} ${-peanut.ry * 0.42}`} fill="none" stroke="rgba(255,248,228,0.08)" strokeWidth="0.75" strokeLinecap="round" />
-            </g>
-          ))}
+          {heroPeanuts.map((peanut) => {
+            const h = peanut.rx;
+            const w = peanut.ry;
+            const nw = w * 0.62;
+            const ts = 0.88;
+            const shellPath = [
+              `M 0,${-h}`,
+              `C ${w*ts*0.86},${-h} ${w*ts},${-h*0.5} ${w*ts},${-h*0.14}`,
+              `C ${w*ts},${-h*0.02} ${nw*1.12},${h*0.02} ${nw},${h*0.09}`,
+              `C ${nw*0.72},${h*0.16} ${w*0.88},${h*0.28} ${w*0.92},${h*0.47}`,
+              `C ${w*0.94},${h*0.78} ${w*0.56},${h} 0,${h}`,
+              `C ${-w*0.56},${h} ${-w*0.94},${h*0.78} ${-w*0.92},${h*0.47}`,
+              `C ${-w*0.88},${h*0.28} ${-nw*0.72},${h*0.16} ${-nw},${h*0.09}`,
+              `C ${-nw*1.12},${h*0.02} ${-w*ts},${-h*0.02} ${-w*ts},${-h*0.14}`,
+              `C ${-w*ts},${-h*0.5} ${-w*ts*0.86},${-h} 0,${-h} Z`,
+            ].join(" ");
+            const tc = "rgba(58,28,6,0.44)";
+            const tw = 1.0;
+
+            return (
+              <g
+                key={peanut.id}
+                transform={`translate(${peanut.x} ${peanut.y}) rotate(${peanut.rotate}) scale(${peanut.scale} ${peanut.scale}) scale(${peanut.flip} 1)`}
+                filter="url(#cjHeroPeanutShadow)"
+                opacity={peanut.tone}
+              >
+                <path d={shellPath} fill="url(#cjHeroPeanutBody)" />
+                {/* sombra interior lóbulo superior */}
+                <ellipse cx={-w*0.24} cy={-h*0.55} rx={w*0.32} ry={h*0.28} fill="rgba(0,0,0,0.08)" />
+                <ellipse cx={w*0.24} cy={-h*0.55} rx={w*0.32} ry={h*0.28} fill="rgba(0,0,0,0.08)" />
+                {/* lóbulo superior — arcos horizontales sutiles */}
+                <path d={`M ${-w*0.6},${-h*0.68} C ${-w*0.2},${-h*0.76} ${w*0.2},${-h*0.76} ${w*0.6},${-h*0.68}`} fill="none" stroke="rgba(50,20,5,0.36)" strokeWidth="0.9" strokeLinecap="round" />
+                <path d={`M ${-w*0.74},${-h*0.4} C ${-w*0.24},${-h*0.52} ${w*0.24},${-h*0.52} ${w*0.74},${-h*0.4}`} fill="none" stroke="rgba(50,20,5,0.32)" strokeWidth="0.85" strokeLinecap="round" />
+                <path d={`M ${-w*0.68},${-h*0.14} C ${-w*0.22},${-h*0.26} ${w*0.22},${-h*0.26} ${w*0.68},${-h*0.14}`} fill="none" stroke="rgba(50,20,5,0.28)" strokeWidth="0.8" strokeLinecap="round" />
+                {/* lóbulo superior — nervaduras diagonales suaves */}
+                <path d={`M ${-w*0.2},${-h*0.82} C ${-w*0.36},${-h*0.54} ${-w*0.28},${-h*0.22} ${-nw*0.6},${-h*0.04}`} fill="none" stroke="rgba(50,20,5,0.24)" strokeWidth="0.75" strokeLinecap="round" />
+                <path d={`M ${w*0.2},${-h*0.82} C ${w*0.36},${-h*0.54} ${w*0.28},${-h*0.22} ${nw*0.6},${-h*0.04}`} fill="none" stroke="rgba(50,20,5,0.24)" strokeWidth="0.75" strokeLinecap="round" />
+                {/* lóbulo inferior — arcos horizontales */}
+                <path d={`M ${-w*0.8},${h*0.26} C ${-w*0.28},${h*0.16} ${w*0.28},${h*0.16} ${w*0.8},${h*0.26}`} fill="none" stroke="rgba(50,20,5,0.3)" strokeWidth="0.85" strokeLinecap="round" />
+                <path d={`M ${-w*0.88},${h*0.52} C ${-w*0.32},${h*0.42} ${w*0.32},${h*0.42} ${w*0.88},${h*0.52}`} fill="none" stroke="rgba(50,20,5,0.26)" strokeWidth="0.8" strokeLinecap="round" />
+                <path d={`M ${-w*0.8},${h*0.76} C ${-w*0.28},${h*0.66} ${w*0.28},${h*0.66} ${w*0.8},${h*0.76}`} fill="none" stroke="rgba(50,20,5,0.22)" strokeWidth="0.75" strokeLinecap="round" />
+                {/* lóbulo inferior — nervaduras diagonales */}
+                <path d={`M ${-nw*0.6},${h*0.12} C ${-w*0.5},${h*0.38} ${-w*0.48},${h*0.64} ${-w*0.34},${h*0.86}`} fill="none" stroke="rgba(50,20,5,0.22)" strokeWidth="0.72" strokeLinecap="round" />
+                <path d={`M ${nw*0.6},${h*0.12} C ${w*0.5},${h*0.38} ${w*0.48},${h*0.64} ${w*0.34},${h*0.86}`} fill="none" stroke="rgba(50,20,5,0.22)" strokeWidth="0.72" strokeLinecap="round" />
+                {/* highlight suave lóbulo superior */}
+                <path d={`M ${-w*0.3},${-h*0.82} C ${-w*0.1},${-h*0.88} ${w*0.06},${-h*0.76} ${w*0.14},${-h*0.62}`} fill="none" stroke="rgba(255,248,220,0.16)" strokeWidth="1.2" strokeLinecap="round" />
+              </g>
+            );
+          })}
         </svg>
 
         <div className="cj-hero-panel cj-hero-left">

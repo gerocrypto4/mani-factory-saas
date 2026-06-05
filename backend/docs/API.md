@@ -71,6 +71,38 @@ Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 - `DELETE /api/v1/orders/{id}?tenantId={tenantId}` - Eliminar orden
 - Si el usuario no es `SUPERADMIN`, `tenantId` debe coincidir con el tenant del JWT
 
+### Finances
+
+- `POST /api/v1/finances?tenantId={tenantId}` - Crear entrada de ingreso o egreso
+  - Requiere JWT. `SUPERADMIN` puede pasar cualquier `tenantId`; otros roles usan el `tenantId` del JWT.
+  - Body:
+    - `type`: `"INCOME"` | `"EXPENSE"`
+    - `category`:
+      - Para `INCOME`: `"cobranzas"`, `"ajustes"`, `"otros ingresos"`
+      - Para `EXPENSE`: `"insumos"`, `"sueldos"`, `"alquileres"`, `"transporte"`, `"otros gastos"`
+    - `amount`: número positivo (mínimo 0.01, 2 decimales)
+    - `entryDate`: `"YYYY-MM-DD"` (fecha pasada o presente)
+    - `note`: string (opcional)
+  - Categoría inválida para el tipo → `400`
+- `GET /api/v1/finances?tenantId={tenantId}&month={1-12}&year={yyyy}` - Listar entradas del período
+  - Requiere JWT.
+  - Si `month` y `year` se omiten: devuelve el mes actual.
+  - Si se provee solo uno de los dos: `400`.
+  - Devuelve lista ordenada por `entryDate DESC`, luego `createdAt DESC`.
+- `GET /api/v1/finances/summary?tenantId={tenantId}&month={1-12}&year={yyyy}` - Resumen financiero del período
+  - Requiere JWT.
+  - Devuelve:
+    - `systemSales`: suma de `total` de pedidos en estado `CONFIRMED`, `SHIPPED` o `DELIVERED` del período (calculado desde orders, no ingresado manualmente)
+    - `salesOrdersCount`: cantidad de esos pedidos
+    - `manualIncome`: suma de entradas tipo `INCOME` del período
+    - `expenses`: suma de entradas tipo `EXPENSE` del período
+    - `totalIncome`: `systemSales + manualIncome`
+    - `netResult`: `totalIncome - expenses`
+    - `expenseByCategory`: array de `{ category, total }` para cada categoría de egreso
+- `DELETE /api/v1/finances/{id}?tenantId={tenantId}` - Eliminar entrada
+  - Requiere JWT.
+  - Si el `id` no pertenece al tenant → `400`.
+
 ### Users
 
 - `GET /api/v1/users` - Listar usuarios
@@ -86,7 +118,7 @@ Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 ### Auth
 
 - `POST /api/v1/auth/login`
-  - Body: `{ "username": "admin", "password": "admin123" }`
+  - Body: `{ "username": "admin", "password": "admin" }`
   - Devuelve JWT con claims `tenantId` y `role`
 - `POST /api/v1/auth/change-password`
   - Requiere JWT válido
@@ -102,7 +134,7 @@ Ejemplo DTOs en `src/main/java/com/manifactory/backend/clients/dto`.
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"admin\",\"password\":\"admin123\"}"
+  -d "{\"username\":\"admin\",\"password\":\"admin\"}"
 ```
 
 2. Listar usuarios (solo `SUPERADMIN`):

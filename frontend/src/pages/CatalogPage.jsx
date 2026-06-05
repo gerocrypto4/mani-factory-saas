@@ -1,33 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProducts } from "../services/api";
-import { useCart } from "../state/use-cart";
-import { resolveProductVisual } from "../data/productVisuals";
 import { ORDER_RULES, formatCurrency, formatKg } from "../constants/orderRules";
+import { buildProductDetailPath, filterCatalogProducts, getAvailableFamilies, getAvailableFlavors, getCatalogCardState, getCatalogDisplayInfo, getFallbackProducts, sortCatalogProducts } from "../data/productCatalog";
+import { useCart } from "../state/use-cart";
+
+const INITIAL_FILTERS = {
+  family: "all",
+  flavor: "all",
+  search: "",
+  sort: "featured"
+};
 
 export default function CatalogPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState("featured");
-  const { addItem, items, removeItem } = useCart();
-
-  const fallbackProducts = useMemo(
-    () => [
-      { id: "fallback-blancheado-salado", name: "Blancheado Salado", price: 3000, description: "Bolsa de 1kg - blancheado salado." },
-      { id: "fallback-blancheado-sin-sal", name: "Blancheado Sin Sal", price: 3000, description: "Bolsa de 1kg - blancheado sin sal." },
-      { id: "fallback-blancheado-con-piel", name: "Blancheado Con Piel", price: 3000, description: "Bolsa de 1kg - blancheado con piel." },
-      { id: "fallback-crocante-salado", name: "Crocante Salado", price: 3000, description: "Bolsa de 1kg - crocante salado." },
-      { id: "fallback-jamon", name: "Crocante Sabor Jamon", price: 3000, description: "Bolsa de 1kg - sabor jamon." },
-      { id: "fallback-queso", name: "Crocante Sabor Queso", price: 3000, description: "Bolsa de 1kg - sabor queso." },
-      { id: "fallback-salame", name: "Crocante Sabor Salame", price: 3000, description: "Bolsa de 1kg - sabor salame." },
-      { id: "fallback-frito", name: "Frito Salado Con Piel", price: 3000, description: "Bolsa de 1kg - frito salado con piel." },
-      { id: "fallback-provenzal", name: "Crocante Sabor Provenzal", price: 3000, description: "Bolsa de 1kg - sabor provenzal." },
-      { id: "fallback-envaina", name: "En Vaina", price: 3000, description: "Bolsa de 1kg - mani en vaina." },
-    ],
-    []
-  );
+  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const { items } = useCart();
 
   useEffect(() => {
     async function load() {
@@ -46,55 +36,30 @@ export default function CatalogPage() {
     load();
   }, []);
 
-  const displayProducts = products.length > 0 ? products : fallbackProducts;
-  const subtotal = items.reduce((acc, item) => acc + Number(item.price || 0) * Number(item.quantity || 1), 0);
+  const displayProducts = products.length > 0 ? products : getFallbackProducts();
+  const families = useMemo(() => getAvailableFamilies(displayProducts), [displayProducts]);
+  const flavors = useMemo(
+    () => getAvailableFlavors(displayProducts, filters.family === "all" ? "" : filters.family),
+    [displayProducts, filters.family]
+  );
+
   const totalKg = items.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
   const remainingToMin = Math.max(0, ORDER_RULES.minOrderKg - totalKg);
   const progressPercent = Math.min(100, (totalKg / ORDER_RULES.minOrderKg) * 100);
 
-  const visibleProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return displayProducts.filter((product) => {
-      const name = String(product.name || "").toLowerCase();
-      const description = String(product.description || "").toLowerCase();
-      const visual = resolveProductVisual(product.name);
-      const line = String(visual.displayName || "").toLowerCase();
-      return (
-        !normalizedQuery ||
-        name.includes(normalizedQuery) ||
-        description.includes(normalizedQuery) ||
-        line.includes(normalizedQuery)
-      );
-    });
-  }, [displayProducts, query]);
+  const filteredProducts = useMemo(() => {
+    const byText = filterCatalogProducts(
+      displayProducts,
+      filters.search,
+      filters.family === "all" ? "" : filters.family,
+      filters.flavor === "all" ? "" : filters.flavor
+    );
 
-  const sortedProducts = useMemo(() => {
-    const featuredOrder = {
-      "Blancheado Salado": 0,
-      "Blancheado Sin Sal": 1,
-      "Blancheado Con Piel": 2,
-      "Crocante Salado": 3,
-      "Crocante Sabor Jamon": 4,
-      "Crocante Sabor Queso": 5,
-      "Crocante Sabor Salame": 6,
-      "Frito Salado Con Piel": 7,
-      "Crocante Sabor Provenzal": 8,
-      "En Vaina": 9,
-    };
+    return sortCatalogProducts(byText, filters.sort);
+  }, [displayProducts, filters]);
 
-    return [...visibleProducts].sort((a, b) => {
-      if (sort === "featured") {
-        const aOrder = featuredOrder[resolveProductVisual(a.name).displayName] ?? 999;
-        const bOrder = featuredOrder[resolveProductVisual(b.name).displayName] ?? 999;
-        return aOrder - bOrder || String(a.name).localeCompare(String(b.name));
-      }
-      if (sort === "price-asc") return Number(a.price) - Number(b.price);
-      if (sort === "price-desc") return Number(b.price) - Number(a.price);
-      if (sort === "name-asc") return String(a.name).localeCompare(String(b.name));
-      if (sort === "name-desc") return String(b.name).localeCompare(String(a.name));
-      return 0;
-    });
-  }, [sort, visibleProducts]);
+  const activeFilterCount =
+    Number(filters.family !== "all") + Number(filters.flavor !== "all") + Number(Boolean(filters.search.trim()));
 
   return (
     <section className="pedido-page">
@@ -102,10 +67,10 @@ export default function CatalogPage() {
         <div className="pedido-hero-shell">
           <div className="pedido-hero-copy">
             <span className="pedido-kicker">Catalogo mayorista</span>
-            <h2 className="pedido-title">Selecciona productos y arma tu pedido</h2>
+            <h2 className="pedido-title">Buscá por familia, sabor o estado de disponibilidad</h2>
             <p className="pedido-subtitle">
-              Pedido mínimo {formatKg(ORDER_RULES.minOrderKg)}. Cada bolsa es de {formatKg(ORDER_RULES.bagWeightKg)}
-              y cada sabor se vende con mínimo de {formatKg(ORDER_RULES.minKgPerFlavor)}.
+              Pedido mínimo {formatKg(ORDER_RULES.minOrderKg)}. Cada bolsa es de {formatKg(ORDER_RULES.bagWeightKg)} y
+              cada sabor se vende con mínimo de {formatKg(ORDER_RULES.minKgPerFlavor)}.
             </p>
             <div className="pedido-rule-strip">
               <div className="pedido-rule-card">
@@ -137,7 +102,9 @@ export default function CatalogPage() {
                 <div className="pedido-progress-track">
                   <div className="pedido-progress-fill" style={{ width: `${progressPercent}%` }} />
                 </div>
-                <span>{formatKg(totalKg)} / {formatKg(ORDER_RULES.minOrderKg)}</span>
+                <span>
+                  {formatKg(totalKg)} / {formatKg(ORDER_RULES.minOrderKg)}
+                </span>
               </div>
             </div>
             <div className="pedido-panel-cta">
@@ -150,29 +117,34 @@ export default function CatalogPage() {
       </div>
 
       <div className="pedido-content">
-        <div className="pedido-layout">
-          <div className="pedido-main">
+        <div className="pedido-layout pedido-layout-catalog">
+          <div className="pedido-main pedido-main-catalog">
             <div className="pedido-toolbar">
               <div className="pedido-toolbar-copy">
                 <span className="pedido-toolbar-kicker">Seleccion de productos</span>
-                <h3 className="pedido-toolbar-title">Busca, ordena y agrega sin perder el flujo de compra</h3>
+                <h3 className="pedido-toolbar-title">Filtros rápidos y cards más claras</h3>
               </div>
 
               <div className="pedido-toolbar-controls">
                 <label className="pedido-search">
-                  <span>Busqueda</span>
+                  <span>Busqueda inteligente</span>
                   <input
                     type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Buscar productos..."
+                    value={filters.search}
+                    onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
+                    placeholder="Familia, sabor, uso o descripción..."
                   />
                 </label>
 
                 <label className="pedido-sort">
                   <span>Orden</span>
-                  <select value={sort} onChange={(event) => setSort(event.target.value)}>
+                  <select
+                    value={filters.sort}
+                    onChange={(event) => setFilters((prev) => ({ ...prev, sort: event.target.value }))}
+                  >
                     <option value="featured">Destacados</option>
+                    <option value="best-sellers">Más vendidos</option>
+                    <option value="available-first">Disponibilidad</option>
                     <option value="price-asc">Precio: menor a mayor</option>
                     <option value="price-desc">Precio: mayor a menor</option>
                     <option value="name-asc">Nombre: A-Z</option>
@@ -186,119 +158,111 @@ export default function CatalogPage() {
               </div>
             </div>
 
-            <div className="pedido-rules-bar">
-              <div className="pedido-rules-chip">Bolsa de 1 kg</div>
-              <div className="pedido-rules-chip">Mínimo 10 kg por sabor</div>
-              <div className="pedido-rules-chip">Pedido mínimo {formatKg(ORDER_RULES.minOrderKg)}</div>
+            <div className="pedido-filter-strip">
+              <label className="pedido-filter-chip">
+                <span>Familia</span>
+                <select
+                  value={filters.family}
+                  onChange={(event) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      family: event.target.value,
+                      flavor: event.target.value === "all" ? prev.flavor : "all"
+                    }))
+                  }
+                >
+                  <option value="all">Todas</option>
+                  {families.map((family) => (
+                    <option key={family} value={family}>
+                      {family}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="pedido-filter-chip">
+                <span>Sabor</span>
+                <select
+                  value={filters.flavor}
+                  onChange={(event) => setFilters((prev) => ({ ...prev, flavor: event.target.value }))}
+                >
+                  <option value="all">Todos</option>
+                  {flavors.map((flavor) => (
+                    <option key={flavor} value={flavor}>
+                      {flavor}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="button"
+                className="btn-secondary pedido-filter-clear"
+                onClick={() => setFilters(INITIAL_FILTERS)}
+                disabled={activeFilterCount === 0 && filters.sort === "featured"}
+              >
+                Limpiar filtros
+              </button>
             </div>
 
             {loading && <div className="pedido-feedback">Cargando productos...</div>}
             {error && <div className="pedido-feedback pedido-feedback-error">{error}</div>}
 
             <div className="pedido-grid">
-              {sortedProducts.map((product, index) => {
-                const visual = resolveProductVisual(product.name);
+              {filteredProducts.map((product, index) => {
+                const info = getCatalogDisplayInfo(product);
+                const state = getCatalogCardState(product);
                 const price = Number.isFinite(Number(product.price)) ? Number(product.price) : 0;
-                const familyLabel = visual.family || "Crocante";
-                const imageSrc = product.imageUrl || visual.image;
+                const imageSrc = product.imageUrl || info.image;
 
                 return (
                   <article
                     key={product.id ?? product.name ?? index}
-                    className="pedido-card"
-                    style={{ transitionDelay: `${index * 0.08}s` }}
+                    className={`pedido-card pedido-card-${state.toneClass}`}
+                    style={{ transitionDelay: `${index * 0.06}s` }}
                   >
-                    <div className="pedido-card-media" style={{ background: visual.tone }}>
-                      <img
-                        src={imageSrc}
-                        alt={product.name}
-                        className="pedido-card-image"
-                        onError={(event) => {
-                          event.currentTarget.src = visual.image;
-                        }}
-                      />
-                      <span className="pedido-card-badge">{visual.displayName}</span>
-                    </div>
-
-                    <div className="pedido-card-body">
-                      <div className="pedido-card-head">
-                        <div>
-                          <span className="pedido-card-line">{familyLabel}</span>
-                          <h4 className="pedido-card-title">{visual.displayName}</h4>
+                    <Link to={buildProductDetailPath(product)} className="pedido-card-detail-link">
+                      <div className="pedido-card-media" style={{ background: info.tone }}>
+                        <img
+                          src={imageSrc}
+                          alt={product.name}
+                          className="pedido-card-image"
+                          onError={(event) => {
+                            event.currentTarget.src = info.image;
+                          }}
+                        />
+                        <div className="pedido-card-badges">
+                          <span className={`pedido-card-badge pedido-card-badge-family`}>{info.family}</span>
+                          <span className={`pedido-card-badge pedido-card-badge-${state.toneClass}`}>{state.statusLabel}</span>
                         </div>
+                      </div>
+
+                      <div className="pedido-card-body">
+                        <h4 className="pedido-card-title">{info.displayName}</h4>
                         <p className="pedido-card-price">{formatCurrency(price)}</p>
                       </div>
+                    </Link>
 
-                      <p className="pedido-card-desc">{product.description || visual.note}</p>
-
-                      <div className="pedido-card-footer">
-                        <span className="pedido-card-meta">Bolsa x 1 kg · mínimo 10 kg</span>
-                        <div className="pedido-card-actions">
-                          {ORDER_RULES.quickAddKgOptions.map((kg) => (
-                            <button
-                              key={kg}
-                              className="pedido-btn-quick"
-                              onClick={() => addItem(product, kg)}
-                            >
-                              +{formatKg(kg)}
-                            </button>
-                          ))}
-                          <button className="pedido-btn-brand" onClick={() => addItem(product, ORDER_RULES.minKgPerFlavor)}>
-                            Agregar {formatKg(ORDER_RULES.minKgPerFlavor)}
-                          </button>
-                        </div>
-                      </div>
+                    <div className="pedido-card-footer">
+                      <Link
+                        to={buildProductDetailPath(product)}
+                        className={`pedido-card-cta-button ${!state.canAdd ? "pedido-card-cta-disabled" : ""}`}
+                        aria-disabled={!state.canAdd}
+                        onClick={(e) => { if (!state.canAdd) e.preventDefault(); }}
+                      >
+                        {state.isOutOfStock ? "No disponible" : "Ver producto"}
+                        {!state.isOutOfStock && (
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: "6px" }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        )}
+                      </Link>
                     </div>
                   </article>
                 );
               })}
             </div>
           </div>
-
-          <aside className="pedido-summary">
-            <div className="pedido-summary-card">
-              <span className="pedido-summary-kicker">Resumen</span>
-              <div className="pedido-summary-total">
-                <strong>{items.length}</strong>
-                <span>Productos agregados</span>
-              </div>
-              <div className="pedido-summary-total">
-                <strong>{formatKg(totalKg)}</strong>
-                <span>Kilos acumulados</span>
-              </div>
-              <div className="pedido-summary-total">
-                <strong>{formatKg(remainingToMin)}</strong>
-                <span>Falta para mínimo</span>
-              </div>
-              <Link to="/checkout" className="pedido-btn-dark pedido-summary-cta">
-                Continuar a ventas
-              </Link>
-            </div>
-
-            <div className="pedido-summary-card">
-              <span className="pedido-summary-kicker">Items del carrito</span>
-              {items.length === 0 ? (
-                <p className="pedido-summary-empty">Todavía no agregaste productos.</p>
-              ) : (
-                <div className="pedido-summary-items">
-                  {items.map((item) => (
-                    <div key={item.id} className="pedido-summary-item">
-                      <div>
-                        <strong>{item.name}</strong>
-                        <span>{formatKg(item.quantity)} · bolsa {formatKg(ORDER_RULES.bagWeightKg)}</span>
-                      </div>
-                      <div className="pedido-summary-item-actions">
-                        <span>{formatCurrency(Number(item.price) * item.quantity)}</span>
-                        <button className="pedido-summary-remove" onClick={() => removeItem(item.id)}>
-                          Quitar
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </aside>
         </div>
       </div>
     </section>

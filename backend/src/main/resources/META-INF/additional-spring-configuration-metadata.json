@@ -79,6 +79,81 @@
       "name": "spring.flyway.locations",
       "type": "java.util.List<java.lang.String>",
       "description": "Flyway migration locations."
+    },
+    {
+      "name": "products.bootstrap.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables tenant product bootstrap seeding."
+    },
+    {
+      "name": "products.bootstrap.tenants",
+      "type": "java.util.List<com.manifactory.backend.products.bootstrap.ProductBootstrapProperties.TenantCatalog>",
+      "description": "Tenant catalogs to bootstrap."
+    },
+    {
+      "name": "products.bootstrap.tenants[].tenant-id",
+      "type": "java.lang.Long",
+      "description": "Tenant identifier for the bootstrap catalog."
+    },
+    {
+      "name": "products.bootstrap.tenants[].replace-existing",
+      "type": "java.lang.Boolean",
+      "description": "Replaces the existing catalog before seeding."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products",
+      "type": "java.util.List<com.manifactory.backend.products.bootstrap.ProductBootstrapProperties.ProductSeed>",
+      "description": "Products to seed for the tenant."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products[].name",
+      "type": "java.lang.String",
+      "description": "Product name."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products[].description",
+      "type": "java.lang.String",
+      "description": "Product description."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products[].price",
+      "type": "java.math.BigDecimal",
+      "description": "Product price."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products[].weight",
+      "type": "java.lang.Double",
+      "description": "Product weight in kilograms."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products[].image-url",
+      "type": "java.lang.String",
+      "description": "Product image URL."
+    },
+    {
+      "name": "products.bootstrap.tenants[].products[].active",
+      "type": "java.lang.Boolean",
+      "description": "Whether the product seed is active."
+    },
+    {
+      "name": "orders.rules.tenants",
+      "type": "java.util.List<com.manifactory.backend.orders.rules.OrderRulesProperties.TenantRules>",
+      "description": "Tenant-specific order rules."
+    },
+    {
+      "name": "orders.rules.tenants[].tenant-id",
+      "type": "java.lang.Long",
+      "description": "Tenant identifier for order rules."
+    },
+    {
+      "name": "orders.rules.tenants[].min-order-kg",
+      "type": "java.lang.Integer",
+      "description": "Minimum order weight in kilograms."
+    },
+    {
+      "name": "orders.rules.tenants[].min-kg-per-flavor",
+      "type": "java.lang.Integer",
+      "description": "Minimum weight per flavor in kilograms."
     }
   ]
 }

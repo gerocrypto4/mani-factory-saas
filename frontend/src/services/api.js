@@ -16,6 +16,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const url = String(error?.config?.url || "");
+    const isLoginRequest = url.includes("/api/v1/auth/login");
+
+    if (status === 401 && !isLoginRequest) {
+      clearToken();
+      window.dispatchEvent(new CustomEvent("mf:auth-expired"));
+      error.code = "AUTH_EXPIRED";
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export function saveToken(token) {
   localStorage.setItem(tokenKey, token);
 }
@@ -53,6 +70,27 @@ export async function fetchDashboardClients(tenantId = 1) {
   return res.data;
 }
 
+export async function fetchDashboardClientsPage(tenantId = 1, q = "", page = 0, size = 6) {
+  const res = await api.get("/api/v1/clients/search", {
+    params: { tenantId, q, page, size }
+  });
+  return res.data;
+}
+
+export async function fetchDashboardClientOrders(clientId, tenantId = 1, limit = 3) {
+  const res = await api.get(`/api/v1/clients/${clientId}/orders`, {
+    params: { tenantId, limit }
+  });
+  return res.data;
+}
+
+export async function fetchDashboardOrder(orderId, tenantId = 1) {
+  const res = await api.get(`/api/v1/orders/${orderId}`, {
+    params: { tenantId }
+  });
+  return res.data;
+}
+
 export async function fetchDashboardProducts(tenantId = 1) {
   const res = await api.get("/api/v1/products", { params: { tenantId } });
   return res.data;
@@ -64,5 +102,71 @@ export async function updateDashboardOrderStatus(orderId, status, tenantId = 1) 
     { status },
     { params: { tenantId } }
   );
+  return res.data;
+}
+
+function buildFinancePeriodParams(tenantId, period) {
+  const params = { tenantId };
+  if (period?.month) params.month = period.month;
+  if (period?.year) params.year = period.year;
+  return params;
+}
+
+export async function fetchFinanceEntries(tenantId = 1, period = {}) {
+  const res = await api.get("/api/v1/finances", {
+    params: buildFinancePeriodParams(tenantId, period)
+  });
+  return res.data;
+}
+
+export async function fetchFinanceSummary(tenantId = 1, period = {}) {
+  const res = await api.get("/api/v1/finances/summary", {
+    params: buildFinancePeriodParams(tenantId, period)
+  });
+  return res.data;
+}
+
+export async function createFinanceEntry(payload, tenantId = 1) {
+  const res = await api.post("/api/v1/finances", payload, { params: { tenantId } });
+  return res.data;
+}
+
+export async function deleteFinanceEntry(entryId, tenantId = 1) {
+  const res = await api.delete(`/api/v1/finances/${entryId}`, { params: { tenantId } });
+  return res.data;
+}
+
+export async function fetchStockEntries(tenantId = 1) {
+  const res = await api.get("/api/v1/stock", { params: { tenantId } });
+  return res.data;
+}
+
+export async function fetchStockSummary(tenantId = 1) {
+  const res = await api.get("/api/v1/stock/summary", { params: { tenantId } });
+  return res.data;
+}
+
+export async function createStockEntry(payload, tenantId = 1) {
+  const res = await api.post("/api/v1/stock", payload, { params: { tenantId } });
+  return res.data;
+}
+
+export async function deleteStockEntry(entryId, tenantId = 1) {
+  const res = await api.delete(`/api/v1/stock/${entryId}`, { params: { tenantId } });
+  return res.data;
+}
+
+export async function fetchProductionBatches(tenantId = 1) {
+  const res = await api.get("/api/v1/production", { params: { tenantId } });
+  return res.data;
+}
+
+export async function createProductionBatch(payload, tenantId = 1) {
+  const res = await api.post("/api/v1/production", payload, { params: { tenantId } });
+  return res.data;
+}
+
+export async function deleteProductionBatch(batchId, tenantId = 1) {
+  const res = await api.delete(`/api/v1/production/${batchId}`, { params: { tenantId } });
   return res.data;
 }

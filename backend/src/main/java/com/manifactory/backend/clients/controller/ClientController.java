@@ -1,6 +1,8 @@
 package com.manifactory.backend.clients.controller;
 
 import com.manifactory.backend.clients.dto.ClientResponseDTO;
+import com.manifactory.backend.clients.dto.ClientPageResponseDTO;
+import com.manifactory.backend.clients.dto.ClientOrderHistoryResponseDTO;
 import com.manifactory.backend.clients.dto.CreateClientDTO;
 import com.manifactory.backend.clients.dto.UpdateClientDTO;
 import com.manifactory.backend.clients.service.ClientService;
@@ -29,6 +31,25 @@ public class ClientController {
     public ResponseEntity<List<ClientResponseDTO>> list(@RequestParam(required = false) Long tenantId) {
         Long resolvedTenant = TenantResolver.resolve(tenantId);
         return ResponseEntity.ok(service.listByTenant(resolvedTenant));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ClientPageResponseDTO> search(
+            @RequestParam(required = false) Long tenantId,
+            @RequestParam(required = false, defaultValue = "") String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        return ResponseEntity.ok(service.searchByTenant(resolvedTenant, q, page, size));
+    }
+
+    @GetMapping("/{id}/orders")
+    public ResponseEntity<ClientOrderHistoryResponseDTO> orderHistory(
+            @RequestParam(required = false) Long tenantId,
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "3") int limit) {
+        Long resolvedTenant = TenantResolver.resolve(tenantId);
+        return ResponseEntity.ok(service.getOrderHistory(resolvedTenant, id, limit));
     }
 
     @GetMapping("/{id}")

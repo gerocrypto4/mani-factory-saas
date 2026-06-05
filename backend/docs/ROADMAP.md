@@ -30,7 +30,7 @@ Este roadmap define los siguientes pasos para llevar esa base a nivel productivo
 ### 2) Seguridad de credenciales [Pendiente]
 - [x] Política mínima de password (longitud/complejidad).
 - [x] Endpoint `change my password` para usuario autenticado.
-- [ ] Política para usuario bootstrap (cambio obligatorio inicial o desactivación controlada).
+- [x] Política para usuario bootstrap (cambio obligatorio inicial o desactivación controlada).
 
 ### 3) Observabilidad minima [Completado]
 - [x] Agregar Actuator (`health`, `info`).

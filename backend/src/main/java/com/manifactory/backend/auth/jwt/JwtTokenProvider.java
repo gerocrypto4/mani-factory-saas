@@ -3,6 +3,7 @@ package com.manifactory.backend.auth.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.WeakKeyException;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.nio.charset.StandardCharsets;
@@ -30,12 +31,22 @@ public class JwtTokenProvider {
         if (insecureSecret && !allowInsecureDevKey) {
             throw new IllegalStateException("JWT secret is not configured securely. Set JWT_SECRET.");
         }
-        if (insecureSecret) {
-            this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-        } else {
-            this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        }
+        this.key = buildKey(secret, allowInsecureDevKey);
         this.validityMs = validityMs;
+    }
+
+    private Key buildKey(String secret, boolean allowInsecureDevKey) {
+        if (secret == null || secret.isBlank() || "default-secret-please-change".equals(secret)) {
+            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        }
+        try {
+            return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        } catch (WeakKeyException ex) {
+            if (allowInsecureDevKey) {
+                return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+            }
+            throw ex;
+        }
     }
 
     public String createToken(String username, Long tenantId, String role) {
